@@ -1,0 +1,40 @@
+	<name>Solar Fox</name>
+	<mameversion>0216</mameversion>
+	<mratimestamp>201912310000</mratimestamp>
+	<year>1980</year>
+	<manufacturer>Bally Midway</manufacturer>
+	<category>Action</category>
+	<rbf>MCR1</rbf>
+	<setname>solarfox</setname>
+	<rom index="1">
+		<part>1</part>
+	</rom>	
+<romstruct>
+ ROM structure
+00000 - 05FFF  CPU1
+06000 - 09FFF  CPU2
+0A000 - 0BFFF  BG
+0C000 - 13FFF  Sprites
+</romstruct>
+	<rom index="0" zip="solarfox.zip" md5="27fd04680e65d414a6bca956685d54d1" type="merged|nonmerged">
+		<part crc="8c40f6eb" name="sfcpu.3b"/>
+		<part crc="4d47bd7e" name="sfcpu.4b"/>
+		<part crc="b52c3bd5" name="sfcpu.5b"/>
+		<part crc="bd5d25ba" name="sfcpu.4d"/>
+		<part crc="dd57d817" name="sfcpu.5d"/>
+		<part crc="bd993cd9" name="sfcpu.6d"/>
+		<part crc="8ad8731d" name="sfcpu.7d"/>
+		
+		<part crc="cdecf83a" name="sfsnd.7a"/>
+		<part crc="cb7788cb" name="sfsnd.8a"/>		
+		<part crc="304896ce" name="sfsnd.9a"/>
+		<part repeat="4096">FF</part>		
+		<part crc="ba019a60" name="sfcpu.4g"/>
+		<part crc="7ff0364e" name="sfcpu.5g"/>		
+		<part repeat="28672">00</part>
+		<part crc="9d9b5d7e" name="sfvid.1a"/>
+		<part crc="78801e83" name="sfvid.1b"/>
+		<part crc="4d8445cf" name="sfvid.1d"/>
+		<part crc="3da25495" name="sfvid.1e"/>
+		</rom>
+</misterromdescription>
