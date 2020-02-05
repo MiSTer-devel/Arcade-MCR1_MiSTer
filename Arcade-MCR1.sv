@@ -212,8 +212,8 @@ always @(posedge clk_sys) begin
 			'h06: btn_start2        <= pressed; // F2
 			//'h04: btn_start3        <= pressed; // F3
 			//'h0C: btn_start4        <= pressed; // F4
-			'h12: btn_fireD         <= pressed; // l-shift
-			'h14: btn_fireC         <= pressed; // ctrl
+			//'h12: btn_fireD         <= pressed; // l-shift
+			//'h14: btn_fireC         <= pressed; // ctrl
 			'h11: btn_fireB         <= pressed; // alt
 			'h29: btn_fireA         <= pressed; // Space
 			// JPAC/IPAC/MAME Style Codes
@@ -231,11 +231,11 @@ always @(posedge clk_sys) begin
 			'h34: btn_right2        <= pressed; // G
 			'h1C: btn_fire2A        <= pressed; // A
 			'h1B: btn_fire2B        <= pressed; // S
-			'h21: btn_fire2C        <= pressed; // Q
-			'h1D: btn_fire2D        <= pressed; // W
+			//'h21: btn_fire2C        <= pressed; // Q
+			//'h1D: btn_fire2D        <= pressed; // W
 			//'h1D: btn_fire2E        <= pressed; // W
 			//'h1D: btn_fire2F        <= pressed; // W
-			//'h1D: btn_tilt <= pressed; // W
+			//'h1D: btn_tilt          <= pressed; // W
 		endcase
 	end
 end
@@ -246,8 +246,8 @@ reg btn_down   = 0;
 reg btn_up     = 0;
 reg btn_fireA  = 0;
 reg btn_fireB  = 0;
-reg btn_fireC  = 0;
-reg btn_fireD  = 0;
+//reg btn_fireC  = 0;
+//reg btn_fireD  = 0;
 reg btn_coin1  = 0;
 reg btn_coin2  = 0;
 reg btn_start1 = 0;
@@ -258,8 +258,8 @@ reg btn_left2  = 0;
 reg btn_right2 = 0;
 reg btn_fire2A = 0;
 reg btn_fire2B = 0;
-reg btn_fire2C = 0;
-reg btn_fire2D = 0;
+//reg btn_fire2C = 0;
+//reg btn_fire2D = 0;
 
 wire service = sw[1][0];
 
@@ -273,8 +273,8 @@ wire m_down1   = btn_down   | joy1[2];
 wire m_up1     = btn_up     | joy1[3];
 wire m_fire1a  = btn_fireA  | joy1[4];
 wire m_fire1b  = btn_fireB  | joy1[5];
-wire m_fire1c  = btn_fireC  | joy1[6];
-wire m_fire1d  = btn_fireD  | joy1[7];
+//wire m_fire1c  = btn_fireC  | joy1[6];
+//wire m_fire1d  = btn_fireD  | joy1[7];
 
 wire m_right2  = btn_right2 | joy2[0];
 wire m_left2   = btn_left2  | joy2[1];
@@ -282,8 +282,8 @@ wire m_down2   = btn_down2  | joy2[2];
 wire m_up2     = btn_up2    | joy2[3];
 wire m_fire2a  = btn_fire2A | joy2[4];
 wire m_fire2b  = btn_fire2B | joy2[5];
-wire m_fire2c  = btn_fire2C | joy2[6];
-wire m_fire2d  = btn_fire2D | joy2[7];
+//wire m_fire2c  = btn_fire2C | joy2[6];
+//wire m_fire2d  = btn_fire2D | joy2[7];
 
 wire m_right   = m_right1 | m_right2;
 wire m_left    = m_left1  | m_left2; 
@@ -291,8 +291,8 @@ wire m_down    = m_down1  | m_down2;
 wire m_up      = m_up1    | m_up2;   
 wire m_fire_a  = m_fire1a | m_fire2a;
 wire m_fire_b  = m_fire1b | m_fire2b;
-wire m_fire_c  = m_fire1c | m_fire2c;
-wire m_fire_d  = m_fire1d | m_fire2d;
+//wire m_fire_c  = m_fire1c | m_fire2c;
+//wire m_fire_d  = m_fire1d | m_fire2d;
 
 reg  [7:0] input_0;
 reg  [7:0] input_1;
