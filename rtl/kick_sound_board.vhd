@@ -75,9 +75,7 @@ port(
 
  cpu_rom_addr : out std_logic_vector(13 downto 0);
  cpu_rom_do   : in std_logic_vector(7 downto 0);
- cpu_rom_rd   : out std_logic;
-
- dbg_cpu_addr : out std_logic_vector(15 downto 0)
+ cpu_rom_rd   : out std_logic
  );
 end kick_sound_board;
 
@@ -173,14 +171,6 @@ begin
 clock_snd  <= clock_40;
 clock_sndn <= not clock_40;
 reset_n    <= not reset;
-
--- debug 
-process (reset, clock_snd)
-begin
- if rising_edge(clock_snd) and cpu_ena ='1' and cpu_mreq_n ='0' then
-  dbg_cpu_addr <= cpu_addr;
- end if;
-end process;
 
 -- make enables clock from clock_snd
 process (clock_snd, reset)
@@ -422,9 +412,9 @@ port map(
   INT_n   => cpu_irq_n,
   NMI_n   => '1', --cpu_nmi_n,
   BUSRQ_n => '1',
-  M1_n    => cpu_m1_n,
+  --M1_n    => cpu_m1_n,
   MREQ_n  => cpu_mreq_n,
-  IORQ_n  => cpu_ioreq_n,
+  --IORQ_n  => cpu_ioreq_n,
   RD_n    => cpu_rd_n,
   WR_n    => cpu_wr_n,
   RFSH_n  => open,
@@ -493,7 +483,7 @@ port map(
   I_BDIR     => ay1_bdir,  -- in  std_logic; -- pin 27
   I_BC2      => '1',       -- in  std_logic; -- pin 28
   I_BC1      => ay1_bc1,   -- in  std_logic; -- pin 29
-  I_SEL_L    => '0',       -- in  std_logic;
+  I_SEL_L    => '1',       -- in  std_logic;
 
   O_AUDIO    => ay1_audio_muxed, -- out std_logic_vector(7 downto 0);
   O_CHAN     => ay1_audio_chan,  -- out std_logic_vector(1 downto 0);
@@ -526,7 +516,7 @@ port map(
   I_BDIR     => ay2_bdir,  -- in  std_logic; -- pin 27
   I_BC2      => '1',       -- in  std_logic; -- pin 28
   I_BC1      => ay2_bc1,   -- in  std_logic; -- pin 29
-  I_SEL_L    => '0',       -- in  std_logic;
+  I_SEL_L    => '1',       -- in  std_logic;
 
   O_AUDIO    => ay2_audio_muxed, -- out std_logic_vector(7 downto 0);
   O_CHAN     => ay2_audio_chan,  -- out std_logic_vector(1 downto 0);

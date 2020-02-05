@@ -157,7 +157,6 @@ port(
  video_r        : out std_logic_vector(3 downto 0);
  video_g        : out std_logic_vector(3 downto 0);
  video_b        : out std_logic_vector(3 downto 0);
- --video_clk      : out std_logic;
  video_csync    : out std_logic;
  video_hblank   : out std_logic;
  video_vblank   : out std_logic;
@@ -168,22 +167,11 @@ port(
  separate_audio : in  std_logic;
  audio_out_l    : out std_logic_vector(15 downto 0);
  audio_out_r    : out std_logic_vector(15 downto 0);
-  
- --coin1          : in std_logic;
- --coin2          : in std_logic;
- --start2         : in std_logic;
- --start1         : in std_logic;
- --kick           : in std_logic;
- --service        : in std_logic;
  
- ctc_zc_to_2    : out std_logic;
- pokermod       : in std_logic;
- --spin_angle     : in std_logic_vector(3 downto 0);
  input_0        : in std_logic_vector( 7 downto 0);
  input_1        : in std_logic_vector( 7 downto 0);
  input_2        : in std_logic_vector( 7 downto 0);
  input_3        : in std_logic_vector( 7 downto 0);
- input_4        : in std_logic_vector( 7 downto 0);
 
  cpu_rom_addr   : out std_logic_vector(14 downto 0);
  cpu_rom_do     : in std_logic_vector(7 downto 0);
@@ -358,7 +346,7 @@ end process;
 cpu_ena <= '1' when clock_cnt = "1111" else '0'; -- (2.5MHz)
 pix_ena <= '1' when (clock_cnt(1 downto 0) = "11" and tv15Khz_mode = '1') or         -- (10MHz)
 						  (clock_cnt(0) = '1'           and tv15Khz_mode = '0') else '0';  -- (20MHz)
---video_ce <= pix_ena;
+video_ce <= pix_ena;
 -----------------------------------
 -- Video scanner  634x525 @20Mhz --
 -- display 512x480               --
@@ -366,89 +354,69 @@ pix_ena <= '1' when (clock_cnt(1 downto 0) = "11" and tv15Khz_mode = '1') or    
 process (reset, clock_vid)
 begin
 	if reset='1' then
-		hcnt      <= (others=>'0');
-		vcnt      <= (others=>'0');
+		hcnt  <= (others=>'0');
+		vcnt  <= (others=>'0');
 		top_frame <= '0';
-	else 
-		if rising_edge(clock_vid) then
-			if pix_ena = '1' then
-		
-				hcnt <= hcnt + 1;
-				if hcnt = 633 then
-					hcnt <= (others=>'0');
-					vcnt <= vcnt + 1;
-					if (vcnt = 524 and tv15Khz_mode = '0') or (vcnt = 263 and tv15Khz_mode = '1') then
-						vcnt <= (others=>'0');
-						top_frame <= not top_frame;
-					end if;
+	elsif rising_edge(clock_vid) then
+		if pix_ena = '1' then
+
+			hcnt <= hcnt + 1;
+			if hcnt = 633 then
+				hcnt <= (others=>'0');
+				vcnt <= vcnt + 1;
+				if (vcnt = 524 and tv15Khz_mode = '0') or (vcnt = 263 and tv15Khz_mode = '1') then
+					vcnt <= (others=>'0');
+					top_frame <= not top_frame;
 				end if;
-			
-				if tv15Khz_mode = '0' then 
-							--	progessive mode
-				
+			end if;
+
+			if tv15Khz_mode = '0' then 
+				--	progessive mode
+
 				if vcnt = 490-1 then video_vs <= '0'; end if; -- front porch 10
 				if vcnt = 492-1 then video_vs <= '1'; end if; -- sync pulse   2
-																			 -- back porch  33 
+				                                              -- back porch  33 
 																		 
-				if hcnt = 512+13-8 then video_hs <= '0'; end if;  -- front porch 16/25*20 = 13
-				if hcnt = 512+90-8 then video_hs <= '1'; end if;  -- sync pulse  96/25*20 = 77
-																				  -- back porch  48/25*20 = 38
+				if hcnt = 512+13+9 then video_hs <= '0'; end if;  -- front porch 16/25*20 = 13
+				if hcnt = 512+90+9 then video_hs <= '1'; end if;  -- sync pulse  96/25*20 = 77
+                                                                  -- back porch  48/25*20 = 38
 				--video_blankn <= '0';
-				--if hcnt >= 2 and  hcnt < 514 and
-					--vcnt >= 1 and  vcnt < 481 then video_blankn <= '1';end if;
 				video_hblank <= '1';
-				if hcnt >= 2 and  hcnt < 514 and
-					vcnt >= 1 and  vcnt < 481 then video_hblank <= '0';
+				if hcnt >= 2+16 and  hcnt < 514+16 and
+					vcnt >= 2 and  vcnt < 481 then video_hblank <= '0';
 				end if;
 				
 				video_vblank <= '1';
 				if vcnt >= 2 and vcnt < 480 then
 					video_vblank <= '0';
 				end if;
-				
-				else    -- interlaced mode
+
+	
+			else    -- interlaced mode
 				 
-				if hcnt = 530 then 
+				if hcnt = 530+18 then 
 					hs_cnt <= (others => '0');
 					if (vcnt = 240) then
 						vs_cnt <= (others => '0');
 					else
 						vs_cnt <= vs_cnt +1;
 					end if;
-
-					--if vcnt = 240 then video_vs <= '0'; end if;
-					--if vcnt = 242 then video_vs <= '1'; end if;
-
 				else 
 					hs_cnt <= hs_cnt + 1;
 				end if;
-			
 
-				video_hblank <= '1';
-                                if hcnt >= 2+16 and hcnt < 514+16 then
-                                   video_hblank <= '0';
-                                end if;
+				if hcnt = 0 then
+					video_hblank <= '0';
+					video_vblank <= '1';
+					if vcnt >= 1 and vcnt < 241 then
+						video_vblank <= '0';
+					end if;
+				end if;
 
-                                video_vblank <= '1';
-                                if vcnt >= 1 and vcnt < 241 then
-                                   video_vblank <= '0';
-                                end if;
-	
-				--video_blankn <= '0';				
-				--if hcnt >= 2 and  hcnt < 514 and
-					--vcnt >= 1 and  vcnt < 241 then video_blankn <= '1';end if;
-				--if hcnt = 2 then
-			--		video_hblank <= '0';
-			--		video_vblank <= '1';
-			--		if vcnt >= 1 and vcnt < 241 then
-			--			video_vblank <= '0';
-			--		end if;
-			--	end if;
+				if hcnt = 512 then
+					video_hblank <= '1';
+				end if;
 
-			--	if hcnt = 513+16 then
-			--		video_hblank <= '1';
-			--	end if;
-				
 				if    hs_cnt =  0 then hsync0 <= '0'; video_hs <= '0';
 				elsif hs_cnt = 47 then hsync0 <= '1'; video_hs <= '1';
 				end if;
@@ -494,93 +462,11 @@ begin
 				elsif  vs_cnt = 11 then video_csync <= hsync0;
 				else                    video_csync <= hsync0;
 				end if;
-				
-				
-				end if;
 
+				--if vcnt = 260 then video_vs <= '0'; end if;
+				--if vcnt = 262 then video_vs <= '1'; end if;
 				if vcnt = 240 then video_vs <= '0'; end if;
 				if vcnt = 242 then video_vs <= '1'; end if;
-
-				
---			   -- test pattern (progressive)
---
---				video_blankn <= '1';
---
---				video_r <= "0000";
---				video_g <= "0000";
---				video_b <= "0000";
---
---				if hcnt >= 0 and  hcnt < 512 and
---					vcnt >= 0 and  vcnt < 480 then video_b <= "0100"; end if;
---
---				if hcnt >= 1 and  hcnt < 511 and
---					vcnt >= 1 and  vcnt < 479 then video_r <= "0100"; end if;
---			
---				if hcnt >= 0 and  hcnt < 512 and
---					vcnt >= 0 and  vcnt < 480 then video_g <= "0100"; end if;
---
---				if hcnt >= 0 and  hcnt < 512 and
---					vcnt >= 0 and  vcnt < 480 and 
---					hcnt(5 downto 0) = vcnt(5 downto 0) then 
---						video_r <= "1100";
---						video_g <= "1100";
---						video_b <= "1100";
---				end if;
-
-
---			   -- test pattern (interlaced)
-
---				video_r <= "0000";
---				video_g <= "0000";
---				video_b <= "0000";
---
---				if hcnt >= 0 and  hcnt < 512 and
---					vcnt >= 0 and  vcnt < 240 then video_b <= "0100"; end if;
---
---				if hcnt >= 10 and hcnt < 501 and
---					vcnt >= 10 and vcnt < 229 then video_r <= "0100"; end if;
---			
---				if hcnt >= 0 and  hcnt < 512 and
---					vcnt >= 0 and  vcnt < 240 then video_g <= "0100"; end if;
---
---				if hcnt >= 0 and  hcnt < 512 and first = '0' and
---					vcnt = 120 then video_b <= "0000"; video_r <= "0100"; video_g <= "0000";end if;
---					
---				if hcnt >= 0 and  hcnt < 512 and first = '1' and
---					vcnt = 120 then video_b <= "0000"; video_r <= "0000"; video_g <= "0100";end if;
---
---				if hcnt >= 0 and  hcnt < 128 and
---					vcnt = 130 then video_b <= "0000"; video_r <= "0100"; video_g <= "0000";end if;
---				if hcnt >= 128 and  hcnt < 256 and
---					vcnt = 130 then video_b <= "0000"; video_r <= "0000"; video_g <= "0100";end if;
---				if hcnt >= 256 and  hcnt < 384 and
---					vcnt = 130 then video_b <= "0000"; video_r <= "0100"; video_g <= "0100";end if;
---
---
---				if hcnt >= 0 and  hcnt < 128 and first = '0' and 
---					vcnt = 133 then video_b <= "0000"; video_r <= "0100"; video_g <= "0000";end if;
---				if hcnt >= 128 and  hcnt < 256 and first = '1'and
---					vcnt = 133 then video_b <= "0000"; video_r <= "0000"; video_g <= "0100";end if;
---				if hcnt >= 256 and  hcnt < 384 and first = '0' and
---					vcnt = 133 then video_b <= "0000"; video_r <= "0100"; video_g <= "0100";end if;
---					
---				if hcnt >= 0 and  hcnt < 128 and first = '0' and 
---					vcnt = 135 then video_b <= "0000"; video_r <= "0100"; video_g <= "0000";end if;
---				if hcnt >= 128 and  hcnt < 256 and first = '1'and
---					vcnt = 135 then video_b <= "0000"; video_r <= "0000"; video_g <= "0100";end if;
---				if hcnt >= 256 and  hcnt < 384 and first = '0' and
---					vcnt = 135 then video_b <= "0000"; video_r <= "0100"; video_g <= "0100";end if;
-					
-					
---				if hcnt >= 0 and  hcnt < 512 and
---					vcnt >= 0 and  vcnt < 240 and 
---					hcnt(5 downto 0) = vcnt(5 downto 0) then 
---						video_r <= "1100";
---						video_g <= "1100";
---						video_b <= "1100";
---				end if;
-
-		
 			end if;
 		end if;
 	end if;
@@ -599,7 +485,7 @@ end process;
 ------------------------------------------
 cpu_di <= cpu_rom_do   		when cpu_mreq_n = '0' and cpu_addr(15 downto 12) < X"7" else      -- 0000-6FFF
 			 wram_do     		when cpu_mreq_n = '0' and cpu_addr(15 downto 12) = X"7" else      -- 7000-7FFF
-			 mram_do          when cpu_mreq_n = '0' and cpu_addr(15 downto  9) = "1000000" else -- 8000-81FF
+			 --mram_do          when cpu_mreq_n = '0' and cpu_addr(15 downto  9) = "1000000" else -- 8000-81FF
 			 sp_ram_cache_do  when cpu_mreq_n = '0' and cpu_addr(15 downto  9) = "1111000" else -- sprite ram  0xF000-0xF1FF
 			 bg_ram_do        when cpu_mreq_n = '0' and cpu_addr(15 downto 10) = "111111"  else -- video ram   0xFC00-0xFFFF
 			 ctc_do           when cpu_int_ack_n = '0' or ctc_ce = '1'                     else -- ctc (interrupt vector or counter data)
@@ -714,17 +600,17 @@ sp_graphx_flip <= sp_graphx_do when sp_hflip(0) = '0' else
 						sp_graphx_do(3 downto 0) & sp_graphx_do(7 downto 4);		
 
 sp_buffer_ram1_di   <= sp_buffer_ram1_do or sp_graphx_flip       when sp_buffer_sel = '1' else "00000000";
-sp_buffer_ram1_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '1' else hcnt(8 downto 1) + X"03";
+sp_buffer_ram1_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '1' else hcnt(8 downto 1) - X"03";
 sp_buffer_ram1_we   <= not sp_hcnt(0) and sp_on_line and pix_ena when sp_buffer_sel = '1' else hcnt(0);
 
 sp_buffer_ram2_di   <= sp_buffer_ram2_do or sp_graphx_flip       when sp_buffer_sel = '0' else "00000000";
-sp_buffer_ram2_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '0' else hcnt(8 downto 1) + X"03";
+sp_buffer_ram2_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '0' else hcnt(8 downto 1) - X"03";
 sp_buffer_ram2_we   <= not sp_hcnt(0) and sp_on_line and pix_ena when sp_buffer_sel = '0' else hcnt(0);
 
 sp_vid <= sp_buffer_ram1_do_r(7 downto 4) when (sp_buffer_sel = '0') and (hcnt(0) = '1') else
 		    sp_buffer_ram1_do_r(3 downto 0) when (sp_buffer_sel = '0') and (hcnt(0) = '0') else
 		    sp_buffer_ram2_do_r(7 downto 4) when (sp_buffer_sel = '1') and (hcnt(0) = '1') else
-			sp_buffer_ram2_do_r(3 downto 0);-- when (sp_buffer_sel = '1') and (hcnt(0) = '0');			  
+			 sp_buffer_ram2_do_r(3 downto 0);-- when (sp_buffer_sel = '1') and (hcnt(0) = '0');			  
 
 --------------------
 --- char machine ---
@@ -756,7 +642,7 @@ bg_vid <= bg_palette_addr;
 palette_F4_we <= '1' when cpu_mreq_n = '0' and cpu_wr_n = '0' and cpu_addr(15 downto 8) = X"F4" else '0'; -- 0xF400-F4FF
 palette_F8_we <= '1' when cpu_mreq_n = '0' and cpu_wr_n = '0' and cpu_addr(15 downto 8) = X"F8" else '0'; -- 0xF800-F8FF
 
-palette_addr <= cpu_addr(3 downto 0) when (palette_F4_we = '1' or palette_F8_we = '1') else bg_vid when sp_vid = "0000" else sp_vid;
+palette_addr <= bg_vid when sp_vid = "0000" else sp_vid;
 
 bg_palette_red_we    <= '1' when palette_F8_we = '1' and cpu_addr(4) = '0' else '0'; -- 0xF800-0F d0-d3 (G11)
 bg_palette_green_we  <= '1' when palette_F4_we = '1' and cpu_addr(4) = '0' else '0'; -- 0xF400-0F d0-d3 ( G9)
@@ -829,20 +715,13 @@ port map (
 	trg1      => ctc_counter_1_trg,
 	to1       => open,
 	trg2      => '0',
-	to2       => ctc_zc_to_2,--open,
+	to2       => open,
 	trg3      => ctc_counter_3_trg
 );
 
 -- cpu program ROM 0x0000-0x6FFF
 cpu_rom_addr <= cpu_addr(14 downto 0);
 cpu_rom_rd <= '1' when cpu_mreq_n = '0' and cpu_rd_n = '0' and cpu_addr(15 downto 12) < X"7" else '0';
-
---rom_cpu : entity work.kick_cpu
---port map(
--- clk  => clock_vidn,
--- addr => cpu_addr(14 downto 0),
--- data => cpu_rom_do
---);
 
 -- working RAM   0x7000-0x77FF
 --wram : entity work.gen_ram
@@ -857,15 +736,15 @@ port map(
 );
 
 -- meter ram, 0x8000 - 0x81ff
-meter_ram : entity work.gen_ram
-generic map( dWidth => 8, aWidth => 9)
-port map(
- clk  => clock_vidn,
- we   => mram_we,
- addr => cpu_addr(8 downto 0),
- d    => cpu_do,
- q    => mram_do
-);
+--meter_ram : entity work.gen_ram
+--generic map( dWidth => 8, aWidth => 9)
+--port map(
+-- clk  => clock_vidn,
+-- we   => mram_we,
+-- addr => cpu_addr(8 downto 0),
+-- d    => cpu_do,
+-- q    => mram_do
+--);
 
 -- video RAM   0xFC00-0xFFFF
 video_ram : entity work.gen_ram
@@ -935,9 +814,8 @@ port map(
  we_b   => bg_graphics_1_we,
  d_b    => dl_data
 );
---bg_graphics_1_we <= '1' when dl_wr = '1' and dl_addr(16 downto 13) = "1000" else '0'; -- 10000-11FFF
---bg_graphics_1_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "01010" else '0'; -- 12000-12FFF
-bg_graphics_1_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "01011" else '0'; -- 13000-13FFF
+
+bg_graphics_1_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "11000" else '0'; -- 18000-18FFF
 
 -- background graphics ROM G5
 --bg_graphics_2 : entity work.kick_bg_bits_2
@@ -952,9 +830,8 @@ port map(
  we_b   => bg_graphics_2_we,
  d_b    => dl_data
 );
---bg_graphics_2_we <= '1' when dl_wr = '1' and dl_addr(16 downto 13) = "1001" else '0'; -- 12000-13FFF
---bg_graphics_2_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "01011" else '0'; -- 13000-13FFF
-bg_graphics_2_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "01100" else '0'; -- 14000-14FFF
+
+bg_graphics_2_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "11001" else '0'; -- 19000-19FFF
 
 -- sprite graphics ROM 1E/1D/1B/1A
 --sprite_graphics : entity work.kick_sp_bits
@@ -965,12 +842,12 @@ port map(
  addr_a => sp_code_line_mux,
  q_a    => sp_graphx_do,
  clk_b  => clock_vid,
- addr_b => not dl_addr(14) & dl_addr(13 downto 0),
+ addr_b => dl_addr(14 downto 0),
 
  we_b   => sprite_graphics_we,
  d_b    => dl_data
 );
-sprite_graphics_we <= '1' when dl_wr = '1' and dl_addr(16) = '1' else '0'; -- 14000-1BFFF
+sprite_graphics_we <= '1' when dl_wr = '1' and dl_addr(16 downto 15) = "10" else '0'; -- 10000-17FFF
 
 --kick_sound_board 
 sound_board : entity work.kick_sound_board
@@ -988,7 +865,6 @@ port map(
  input_1 => input_1,
  input_2 => input_2,
  input_3 => input_3,
- --input_4 => input_4,
  
  separate_audio => separate_audio,
  audio_out_l    => audio_out_l,
@@ -997,74 +873,90 @@ port map(
  cpu_rom_addr   => snd_rom_addr,
  cpu_rom_do     => snd_rom_do,
  cpu_rom_rd     => snd_rom_rd
-
- --dbg_cpu_addr => open --dbg_cpu_addr
 );
  
 -- background palette red
-bg_palette_red : entity work.gen_ram
+bg_palette_red : entity work.dpram
 generic map( dWidth => 4, aWidth => 4)
 port map(
- clk  => clock_vidn,
- we   => bg_palette_red_we,
- addr => palette_addr,
- d    => cpu_do(3 downto 0),
- q    => bg_palette_red_do
+ clk_a  => clock_vidn,
+ we_a   => bg_palette_red_we,
+ addr_a => cpu_addr(3 downto 0),
+ d_a    => cpu_do(3 downto 0),
+
+ clk_b  => clock_vidn,
+ addr_b => palette_addr,
+ q_b    => bg_palette_red_do
 );
 
 -- background palette green
-bg_palette_green : entity work.gen_ram
+bg_palette_green : entity work.dpram
 generic map( dWidth => 4, aWidth => 4)
 port map(
- clk  => clock_vidn,
- we   => bg_palette_green_we,
- addr => palette_addr,
- d    => cpu_do(3 downto 0),
- q    => bg_palette_green_do
+ clk_a  => clock_vidn,
+ we_a   => bg_palette_green_we,
+ addr_a => cpu_addr(3 downto 0),
+ d_a    => cpu_do(3 downto 0),
+
+ clk_b  => clock_vidn,
+ addr_b => palette_addr,
+ q_b    => bg_palette_green_do
 );
 
 -- background palette blue
-bg_palette_blue : entity work.gen_ram
+bg_palette_blue : entity work.dpram
 generic map( dWidth => 4, aWidth => 4)
 port map(
- clk  => clock_vidn,
- we   => bg_palette_blue_we,
- addr => palette_addr,
- d    => cpu_do(7 downto 4),
- q    => bg_palette_blue_do
+ clk_a  => clock_vidn,
+ we_a   => bg_palette_blue_we,
+ addr_a => cpu_addr(3 downto 0),
+ d_a    => cpu_do(7 downto 4),
+
+ clk_b  => clock_vidn,
+ addr_b => palette_addr,
+ q_b    => bg_palette_blue_do
 );
 
 -- sprite palette red
-bg_sprite_red : entity work.gen_ram
+bg_sprite_red : entity work.dpram
 generic map( dWidth => 4, aWidth => 4)
 port map(
- clk  => clock_vidn,
- we   => sp_palette_red_we,
- addr => palette_addr,
- d    => cpu_do(3 downto 0),
- q    => sp_palette_red_do
+ clk_a  => clock_vidn,
+ we_a   => sp_palette_red_we,
+ addr_a => cpu_addr(3 downto 0),
+ d_a    => cpu_do(3 downto 0),
+
+ clk_b  => clock_vidn,
+ addr_b => palette_addr,
+ q_b    => sp_palette_red_do
 );
 
 -- sprite palette green
-bg_sprite_green : entity work.gen_ram
+bg_sprite_green : entity work.dpram
 generic map( dWidth => 4, aWidth => 4)
 port map(
- clk  => clock_vidn,
- we   => sp_palette_green_we,
- addr => palette_addr,
- d    => cpu_do(3 downto 0),
- q    => sp_palette_green_do
+ clk_a  => clock_vidn,
+ we_a   => sp_palette_green_we,
+ addr_a => cpu_addr(3 downto 0),
+ d_a    => cpu_do(3 downto 0),
+
+ clk_b  => clock_vidn,
+ addr_b => palette_addr,
+ q_b    => sp_palette_green_do
 );
 
 -- sprite palette blue
-bg_sprite_blue : entity work.gen_ram
+bg_sprite_blue : entity work.dpram
 generic map( dWidth => 4, aWidth => 4)
 port map(
- clk  => clock_vidn,
- we   => sp_palette_blue_we,
- addr => palette_addr,
- d    => cpu_do(7 downto 4),
- q    => sp_palette_blue_do
+ clk_a  => clock_vidn,
+ we_a   => sp_palette_blue_we,
+ addr_a => cpu_addr(3 downto 0),
+ d_a    => cpu_do(7 downto 4),
+
+ clk_b  => clock_vidn,
+ addr_b => palette_addr,
+ q_b    => sp_palette_blue_do
 );
 
 end struct;
