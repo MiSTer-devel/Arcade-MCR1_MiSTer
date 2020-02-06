@@ -1,5 +1,5 @@
 //============================================================================
-//  Arcade: MCR2
+//  Arcade: MCR1
 //
 //  Port to MiSTer
 //  Copyright (C) 2019 Sorgelig
@@ -298,6 +298,7 @@ reg  [7:0] input_0;
 reg  [7:0] input_1;
 reg  [7:0] input_2;
 reg  [7:0] input_3;
+reg  [7:0] input_4;
 
 // Game specific sound board/DIP/input settings
 always @(*) begin
@@ -306,6 +307,7 @@ always @(*) begin
 	input_1 = 8'hff;
 	input_2 = 8'hff;
 	input_3 = sw[0];
+	input_4 = 8'hff;
 
 	if (mod_kick) begin
 		input_0 = ~{ service, 2'b00, m_fire_a, m_start2, m_start1, 1'b0, m_coin1 };
@@ -365,7 +367,7 @@ always @(posedge clk_sys) begin
 	reset <= status[0] | buttons[1] | rom_download | ~rom_loaded | (reset_count == 16'h0001);
 end
 
-kick kick
+mcr1 mcr1
 (
 	.clock_40(clk_sys),
 	.reset(reset),
@@ -383,19 +385,20 @@ kick kick
 	.audio_out_l(audio_l),
 	.audio_out_r(audio_r),
 
-	.input_0      ( input_0),
-	.input_1      ( input_1),
-	.input_2      ( input_2),
-	.input_3      ( input_3),
+	.input_0(input_0),
+	.input_1(input_1),
+	.input_2(input_2),
+	.input_3(input_3),
+	.input_4(input_4),
 
-	.cpu_rom_addr ( rom_addr),
-	.cpu_rom_do   ( rom_do ),
-	.snd_rom_addr ( snd_addr ),
-	.snd_rom_do   ( snd_do ),
+	.cpu_rom_addr(rom_addr),
+	.cpu_rom_do(rom_do),
+	.snd_rom_addr(snd_addr),
+	.snd_rom_do(snd_do),
 
-	.dl_addr      ( ioctl_addr[16:0]),
-	.dl_wr        ( ioctl_wr & rom_download),
-	.dl_data      ( ioctl_dout)
+	.dl_addr(ioctl_addr[16:0]),
+	.dl_wr(ioctl_wr&rom_download),
+	.dl_data(ioctl_dout)
 );
 
 wire ce_pix_old;
@@ -407,7 +410,6 @@ wire ce_pix;
 
 wire no_rotate = status[2] | direct_video;
 
-//arcade_video #(512,240,9) arcade_video
 arcade_video #(512,240,9) arcade_video
 (
 	.*,
@@ -428,13 +430,14 @@ assign AUDIO_R = { audio_r };
 assign AUDIO_S = 0;
 
 wire [3:0] spin_angle;
-spinner spinner (
-	.clock_40(clk_sys),
+spinner #(4,8) spinner
+(
+	.clk(clk_sys),
 	.reset(reset),
-	.btn_acc(m_fire_b),
-	.btn_left(m_left),
-	.btn_right(m_right),
-	.ctc_zc_to_2(vs),
+	.fast(m_fire_b),
+	.minus(m_left),
+	.plus(m_right),
+	.strobe(vs),
 	.use_spinner(status[6]),
 	.spin_angle(spin_angle)
 );

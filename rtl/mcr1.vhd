@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------
--- Kick by Dar (darfpga@aol.fr) (19/10/2019)
+-- MCR1 by Dar (darfpga@aol.fr) (19/10/2019)
 -- http://darfpga.blogspot.fr
 ---------------------------------------------------------------------------------
 -- gen_ram.vhd & io_ps2_keyboard
@@ -35,12 +35,7 @@
 --   Coctail mode : NO
 --   Sound        : OK
 
---  Use with MAME roms from kick.zip
---
---  Use make_kick_proms.bat to build vhd file from binaries
---  (CRC list included)
-
---  Kick/Kickman (midway mcr) Hardware caracteristics :
+--  MCR1 (midway mcr) Hardware caracteristics :
 --
 --  VIDEO : 1xZ80@3MHz CPU accessing its program rom, working ram,
 --    sprite data ram, I/O, sound board register and trigger.
@@ -60,7 +55,7 @@
 
 --    Sprites line buffer rams : 1 scan line delay flip/flop 2x256x8bits
 --
---  SOUND : see Kick_sound_board.vhd
+--  SOUND : see mcr_sound_board.vhd
 
 ---------------------------------------------------------------------------------
 --  Schematics remarks :
@@ -149,7 +144,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
-entity kick is
+entity mcr1 is
 port(
  clock_40       : in std_logic;
  reset          : in std_logic;
@@ -172,6 +167,7 @@ port(
  input_1        : in std_logic_vector( 7 downto 0);
  input_2        : in std_logic_vector( 7 downto 0);
  input_3        : in std_logic_vector( 7 downto 0);
+ input_4        : in std_logic_vector( 7 downto 0);
 
  cpu_rom_addr   : out std_logic_vector(14 downto 0);
  cpu_rom_do     : in std_logic_vector(7 downto 0);
@@ -179,15 +175,14 @@ port(
 
  snd_rom_addr   : out std_logic_vector(13 downto 0);
  snd_rom_do     : in std_logic_vector(7 downto 0);
- snd_rom_rd     : out std_logic;
  
  dl_addr        : in  std_logic_vector(16 downto 0);
  dl_wr          : in  std_logic;
  dl_data        : in  std_logic_vector( 7 downto 0)
  );
-end kick;
+end mcr1;
 
-architecture struct of kick is
+architecture struct of mcr1 is
 
  signal reset_n   : std_logic;
  signal clock_vid : std_logic;
@@ -471,14 +466,6 @@ begin
 		end if;
 	end if;
 end process;
-
---------------------
--- players inputs --
---------------------
--- "11" for test & tilt  
---input_0 <= not service & "11" & not kick & not start2 & not start1 & not coin2 & not coin1;
---input_1 <= x"F" & not spin_angle; -- binary angle decoder (spinner)
---input_3 <= x"FE" ;-- FE Music ON, FF Music OFF 
 
 ------------------------------------------
 -- cpu data input with address decoding --
@@ -802,7 +789,6 @@ port map(
 );
 
 -- background graphics ROM G4
---bg_graphics_1 : entity work.kick_bg_bits_1
 bg_graphics_1 : entity work.dpram
 generic map( dWidth => 8, aWidth => 12)
 port map(
@@ -818,7 +804,6 @@ port map(
 bg_graphics_1_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "11000" else '0'; -- 18000-18FFF
 
 -- background graphics ROM G5
---bg_graphics_2 : entity work.kick_bg_bits_2
 bg_graphics_2 : entity work.dpram
 generic map( dWidth => 8, aWidth => 12)
 port map(
@@ -834,7 +819,6 @@ port map(
 bg_graphics_2_we <= '1' when dl_wr = '1' and dl_addr(16 downto 12) = "11001" else '0'; -- 19000-19FFF
 
 -- sprite graphics ROM 1E/1D/1B/1A
---sprite_graphics : entity work.kick_sp_bits
 sprite_graphics : entity work.dpram
 generic map( dWidth => 8, aWidth => 15)
 port map(
@@ -849,8 +833,8 @@ port map(
 );
 sprite_graphics_we <= '1' when dl_wr = '1' and dl_addr(16 downto 15) = "10" else '0'; -- 10000-17FFF
 
---kick_sound_board 
-sound_board : entity work.kick_sound_board
+--mcr_sound_board 
+sound_board : entity work.mcr_sound_board
 port map(
  clock_40    => clock_40,
  reset       => reset,
@@ -865,14 +849,14 @@ port map(
  input_1 => input_1,
  input_2 => input_2,
  input_3 => input_3,
+ input_4 => input_4,
  
  separate_audio => separate_audio,
  audio_out_l    => audio_out_l,
  audio_out_r    => audio_out_r,
 
  cpu_rom_addr   => snd_rom_addr,
- cpu_rom_do     => snd_rom_do,
- cpu_rom_rd     => snd_rom_rd
+ cpu_rom_do     => snd_rom_do
 );
  
 -- background palette red
