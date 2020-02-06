@@ -1,6 +1,6 @@
 # Midway MCR1 port for MiSTer
 
-[Original readme](readme_orig.md) (mostly irrelevant to MiSTer)
+[Original readme](readme_orig.txt) (mostly irrelevant to MiSTer)
 
 # Keyboard inputs :
 ```
