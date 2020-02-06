@@ -28,15 +28,15 @@
 ### Kick
 Up to 2 players.
 Supported 2 control modes: Joystick/Spinner
-1. Left/Right - movement,  A - Speed, B - Kick
-2. Spinner    - movement,  A - Speed, B - Kick
+1. Left/Right - movement, A - Kick, B - Speed
+2. Spinner    - movement, A - Kick, B - Speed
 
 ### Solar Fox
 Up to 2 players.
 Up/Down/Left/Right - movements, A - Fire, B - Speed
  
 # Unsupported Games
-dpoker 
+dpoker (gambling arcade for casino)
  
  
 # ROMs
