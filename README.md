@@ -8,7 +8,7 @@
    F1          : Start 1P
    F2          : Start 2P 
    UP,DOWN,LEFT,RIGHT arrows : Player 1
-   Space : Fire A
+   LCtrl : Fire A
    LAlt  : Fire B
 
 
@@ -48,7 +48,8 @@ ROM is not included. In order to use this arcade, you need to provide a correct 
 Find this zip file somewhere. You need to find the file exactly as required.
 Do not rename other zip files even if they also represent the same game - they are not compatible!
 The name of zip is taken from M.A.M.E. project, so you can get more info about
-hashes and contained files there
+hashes and contained files there.
+Put rom on your SD card. Example directory : _Arcade/mame/
 
 ```
 
