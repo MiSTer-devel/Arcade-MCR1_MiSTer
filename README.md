@@ -36,7 +36,7 @@ Up to 2 players.
 Up/Down/Left/Right - movements, A - Fire, B - Speed
  
 # Unsupported Games
-dpoker (gambling arcade for casino)
+Draw Poker (gambling arcade for casino)
  
  
 # ROMs
