@@ -212,7 +212,7 @@ always @(posedge clk_sys) begin
 			'h06: btn_start2        <= pressed; // F2
 			'h14: btn_fireA         <= pressed; // lctrl
 			'h11: btn_fireB         <= pressed; // lalt
-			'h29: btn_fireC         <= pressed; // Space
+			//'h29: btn_fireC         <= pressed; // Space
 			// JPAC/IPAC/MAME Style Codes
 			'h16: btn_start1        <= pressed; // 1
 			'h1E: btn_start2        <= pressed; // 2
