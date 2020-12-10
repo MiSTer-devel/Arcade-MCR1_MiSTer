@@ -122,7 +122,7 @@ assign LED_POWER = 0;
 assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 
 assign VIDEO_ARX = status[1] ? 8'd16 : status[2] ? 8'd21 : 8'd20;
-assign VIDEOI_ARY = status[1] ? 8'd9  : status[2] ? 8'd20 : 8'd21;
+assign VIDEO_ARY = status[1] ? 8'd9  : status[2] ? 8'd20 : 8'd21;
 
 `include "build_id.v" 
 localparam CONF_STR = {
