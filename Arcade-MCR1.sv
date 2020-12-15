@@ -143,13 +143,14 @@ localparam CONF_STR = {
 
 ////////////////////   CLOCKS   ///////////////////
 
-wire clk_sys;
+wire clk_sys,clk_80M;
 
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys) // 40M
+	.outclk_0(clk_sys), // 40M
+	.outclk_1(clk_80M)  // 80M
 );
 
 ///////////////////////////////////////////////////
@@ -358,8 +359,7 @@ mcr1 mcr1
 	.video_hs(hs),
 	.video_vs(vs),
 	.video_csync(cs),
-	.video_ce(ce_pix_old),
-	.tv15Khz_mode(~status[13] || status[5:3]),
+	.tv15Khz_mode(~hires),
 	.separate_audio(1'b0),
 	.audio_out_l(audio_l),
 	.audio_out_r(audio_r),
@@ -380,29 +380,30 @@ mcr1 mcr1
 	.dl_data(ioctl_dout)
 );
 
-wire ce_pix_old;
 wire hs, vs, cs;
 wire hblank, vblank;
 wire HSync, VSync;
 wire [3:0] r,g,b;
-wire ce_pix;
 
 wire no_rotate = status[2] | direct_video;
 wire rotate_ccw = 0;
 screen_rotate screen_rotate (.*);
 
-always @(posedge clk_sys) begin
+wire hires = status[13] && !status[5:3];
+
+reg  ce_pix;
+always @(posedge clk_80M) begin
 	reg [2:0] div;
 
 	div <= div + 1'd1;
-	ce_pix <= !div;
+	ce_pix <= hires ? !div[1:0] : !div;
 end
 
 arcade_video #(512,9) arcade_video
 (
 	.*,
-	.ce_pix(status[13] ? ce_pix_old: ce_pix),
-	.clk_video(clk_sys),
+	.ce_pix(ce_pix),
+	.clk_video(clk_80M),
 	.RGB_in({r[3:1],g[3:1],b[3:1]}),
 	.HBlank(hblank),
 	.VBlank(vblank),
