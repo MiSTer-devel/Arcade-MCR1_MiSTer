@@ -375,17 +375,18 @@ begin
 				if hcnt = 512+13+9 then video_hs <= '0'; end if;  -- front porch 16/25*20 = 13
 				if hcnt = 512+90+9 then video_hs <= '1'; end if;  -- sync pulse  96/25*20 = 77
                                                                   -- back porch  48/25*20 = 38
-				--video_blankn <= '0';
-				video_hblank <= '1';
-				if hcnt >= 2+16 and  hcnt < 514+16 and
-					vcnt >= 2 and  vcnt < 481 then video_hblank <= '0';
-				end if;
-				
-				video_vblank <= '1';
-				if vcnt >= 2 and vcnt < 480 then
-					video_vblank <= '0';
+
+				if hcnt = 2 then
+					video_hblank <= '0';
+					video_vblank <= '1';
+					if vcnt >= 1 and vcnt < 481 then
+						video_vblank <= '0';
+					end if;
 				end if;
 
+				if hcnt = 513 then
+					video_hblank <= '1';
+				end if;
 	
 			else    -- interlaced mode
 				 
@@ -400,7 +401,7 @@ begin
 					hs_cnt <= hs_cnt + 1;
 				end if;
 
-				if hcnt = 0 then
+				if hcnt = 1 then
 					video_hblank <= '0';
 					video_vblank <= '1';
 					if vcnt >= 1 and vcnt < 241 then
