@@ -189,10 +189,13 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.direct_video(direct_video),
 
 	.ioctl_download(ioctl_download),
+	.ioctl_upload(ioctl_upload),
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
+	.ioctl_din(ioctl_din),
 	.ioctl_index(ioctl_index),
+	.ioctl_wait(ioctl_wait),
 
 	.joystick_0(joy1),
 	.joystick_1(joy2),
@@ -306,6 +309,7 @@ always @(*) begin
 end
 
 wire rom_download = ioctl_download && !ioctl_index;
+wire [24:0] dl_addr = ioctl_addr[16:0];
 
 wire [14:0] rom_addr;
 wire  [7:0] rom_do;
@@ -313,10 +317,13 @@ wire [13:0] snd_addr;
 wire  [7:0] snd_do;
 
 wire        ioctl_download;
-wire  [7:0] ioctl_index;
+wire        ioctl_upload;
 wire        ioctl_wr;
 wire [24:0] ioctl_addr;
 wire  [7:0] ioctl_dout;
+wire  [7:0] ioctl_din;
+wire  [7:0] ioctl_index;
+wire        ioctl_wait;
 
 dpram #(8,16) rom
 (
@@ -375,9 +382,12 @@ mcr1 mcr1
 	.snd_rom_addr(snd_addr),
 	.snd_rom_do(snd_do),
 
-	.dl_addr(ioctl_addr[16:0]),
-	.dl_wr(ioctl_wr&rom_download),
-	.dl_data(ioctl_dout)
+	.dl_addr(dl_addr),
+	.dl_wr(ioctl_wr & rom_download),
+	.dl_data(ioctl_dout),
+	.dl_nvram_wr(ioctl_wr & (ioctl_index=='d4)), 
+	.dl_din(ioctl_din),
+	.dl_nvram(ioctl_index=='d4)
 );
 
 wire hs, vs, cs;
