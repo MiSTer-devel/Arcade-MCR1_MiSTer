@@ -35,4 +35,5 @@
 		<part crc="b4d120f3" name="1800g-v2.g4"/>
 		<part crc="c3ba4893" name="1900h-v2.g5"/>
 	</rom>
+	<nvram index="4" size="2048"/>
 </misterromdescription>

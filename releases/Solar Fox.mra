@@ -40,4 +40,5 @@
 		<part crc="ba019a60" name="sfcpu.4g"/>
 		<part crc="7ff0364e" name="sfcpu.5g"/>		
 	</rom>
+	<nvram index="4" size="2048"/>
 </misterromdescription>
