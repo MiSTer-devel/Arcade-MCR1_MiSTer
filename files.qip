@@ -8,4 +8,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/spinner.sv
 set_global_assignment -name VHDL_FILE rtl/YM2149_linmix_sep.vhd
 set_global_assignment -name VHDL_FILE rtl/mcr_sound_board.vhd
 set_global_assignment -name VHDL_FILE rtl/mcr1.vhd
+set_global_assignment -name VERILOG_FILE rtl/pause.v
 set_global_assignment -name SYSTEMVERILOG_FILE Arcade-MCR1.sv
