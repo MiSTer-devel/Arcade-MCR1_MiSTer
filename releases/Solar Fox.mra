@@ -13,7 +13,7 @@
 		<dip bits="6"    name="Ignore HW Failure" ids="On,Off"/>
 		<dip bits="8"    name="Service" ids="Off,On"/>
 	</switches>
-	<buttons names="Fire,Speed,-,-,-,-,-,-,Coin" default="A,B,R"/>
+	<buttons names="Fire,Speed,-,-,-,-,-,-,Coin,Pause" default="A,B,R,L"/>
 	<rom index="1">
 		<part>1</part>
 	</rom>	

@@ -176,6 +176,8 @@ port(
  snd_rom_addr   : out std_logic_vector(13 downto 0);
  snd_rom_do     : in std_logic_vector(7 downto 0);
  
+ pause          : in  std_logic;
+ 
  dl_addr        : in  std_logic_vector(16 downto 0);
  dl_data        : in  std_logic_vector(7 downto 0);
  dl_wr          : in  std_logic;
@@ -669,7 +671,7 @@ port map(
   RESET_n => reset_n,
   CLK     => clock_vid,
   CEN     => cpu_ena,
-  WAIT_n  => '1',
+  WAIT_n  => not pause,
   INT_n   => cpu_irq_n,
   NMI_n   => '1', --cpu_nmi_n,
   BUSRQ_n => '1',
@@ -845,7 +847,7 @@ sprite_graphics_we <= '1' when dl_wr = '1' and dl_addr(16 downto 15) = "10" else
 --mcr_sound_board 
 sound_board : entity work.mcr_sound_board
 port map(
- clock_40    => clock_40,
+ clock_40    => clock_40 and (not pause),
  reset       => reset,
  
  main_cpu_addr => cpu_addr(7 downto 0),
