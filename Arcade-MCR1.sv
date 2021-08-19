@@ -212,7 +212,7 @@ localparam CONF_STR = {
 	"-;",
 	"R0,Reset;",
 	"J1,Fire A,Fire B,Fire C,Fire D,Fire E,Fire F,Start 1P, Start 2P,Coin,Pause;",
-	"jn,A,B,X,Y,,,Start,Select,R,Pause;",
+	"jn,A,B,X,Y,,,Start,Select,R,L;",
 	"V,v",`BUILD_DATE
 };
 
@@ -325,7 +325,9 @@ wire m_fire2b  =  joy2[5];
 //wire m_fire2d  =  joy2[7];
 wire m_spccw2  = joy2[30];
 wire m_spcw2   = joy2[31];
-wire m_pause   = joy2[13] | joy2[13];
+
+wire m_pause   = joy[13];
+
 
 wire m_right   = m_right1 | m_right2;
 wire m_left    = m_left1  | m_left2; 
