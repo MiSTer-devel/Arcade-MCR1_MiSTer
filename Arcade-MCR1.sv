@@ -29,7 +29,7 @@ module emu
 	input         RESET,
 
 	//Must be passed to hps_io module
-	inout  [45:0] HPS_BUS,
+	inout  [48:0] HPS_BUS,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        CLK_VIDEO,
@@ -52,12 +52,14 @@ module emu
 	output        VGA_F1,
 	output [1:0]  VGA_SL,
 	output        VGA_SCALER, // Force VGA scaler
+	output        VGA_DISABLE, // analog out is off
 
 	input  [11:0] HDMI_WIDTH,
 	input  [11:0] HDMI_HEIGHT,
+	output        HDMI_FREEZE,
 
 `ifdef MISTER_FB
-	// Use framebuffer in DDRAM (USE_FB=1 in qsf)
+	// Use framebuffer in DDRAM
 	// FB_FORMAT:
 	//    [2:0] : 011=8bpp(palette) 100=16bpp 101=24bpp 110=32bpp
 	//    [3]   : 0=16bits 565 1=16bits 1555
@@ -182,6 +184,7 @@ assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQM
 
 assign VGA_F1 = 0;
 assign VGA_SCALER = 0;
+assign VGA_DISABLE = 0;
 
 assign AUDIO_MIX = 0;
 
@@ -234,6 +237,7 @@ wire [31:0] status;
 wire  [1:0] buttons;
 wire        forced_scandoubler;
 wire        direct_video;
+wire        video_rotated;
 
 wire [15:0] audio_l, audio_r;
 
@@ -249,17 +253,16 @@ reg   [7:0] mouse_flags;
 
 wire [21:0] gamma_bus;
 
-hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
+hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
-
-	.conf_str(CONF_STR),
 
 	.buttons(buttons),
 	.status(status),
 	.status_menumask({|status[5:3],mod_kick,direct_video}),
 	.forced_scandoubler(forced_scandoubler),
+   .video_rotated(video_rotated),
 	.gamma_bus(gamma_bus),
 	.direct_video(direct_video),
 
@@ -487,6 +490,7 @@ wire [3:0] r,g,b;
 
 wire no_rotate = status[2] | direct_video;
 wire rotate_ccw = 0;
+wire flip       = 0;
 screen_rotate screen_rotate (.*);
 
 wire hires = status[13] && !status[5:3];
