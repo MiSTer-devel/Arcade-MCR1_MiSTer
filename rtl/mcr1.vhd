@@ -183,7 +183,8 @@ port(
  dl_wr          : in  std_logic;
  dl_din         : out std_logic_vector(7 downto 0);
  dl_nvram       : in  std_logic;
- dl_nvram_wr    : in  std_logic
+ dl_nvram_wr    : in  std_logic;
+ flip           : in  std_logic
  );
 end mcr1;
 
@@ -320,6 +321,11 @@ architecture struct of mcr1 is
  signal bg_graphics_1_we    : std_logic;
  signal bg_graphics_2_we    : std_logic;
  signal sprite_graphics_we  : std_logic;
+ 
+ signal hcnt_flip        : std_logic_vector(9 downto 0);
+ signal pal_sel          : std_logic_vector(1 downto 0);
+ signal sp_buf_read_addr : std_logic_vector(7 downto 0);
+ signal hcnt_f0          : std_logic;
    
 begin
 
@@ -373,13 +379,11 @@ begin
 			if tv15Khz_mode = '0' then 
 				--	progessive mode
 
-				if vcnt = 490-1 then video_vs <= '0'; end if; -- front porch 10
-				if vcnt = 492-1 then video_vs <= '1'; end if; -- sync pulse   2
-				                                              -- back porch  33 
-																		 
-				if hcnt = 512+13+9 then video_hs <= '0'; end if;  -- front porch 16/25*20 = 13
-				if hcnt = 512+90+9 then video_hs <= '1'; end if;  -- sync pulse  96/25*20 = 77
-                                                                  -- back porch  48/25*20 = 38
+				if vcnt = 489 then video_vs <= '0'; end if;
+				if vcnt = 491 then video_vs <= '1'; end if;
+
+				if hcnt = 534 then video_hs <= '0'; end if;
+				if hcnt = 611 then video_hs <= '1'; end if;
 
 				if hcnt = 2 then
 					video_hblank <= '0';
@@ -507,10 +511,15 @@ ssio_iowe <= '1' when cpu_wr_n = '0' and cpu_ioreq_n = '0' else '0';
 --- sprite machine ---
 ----------------------
 
-vflip <= (240-vcnt(8 downto 0)) & top_frame when tv15Khz_mode = '1' else 480-vcnt; -- apply mirror flip
+vflip <= (240-vcnt(8 downto 0)) & top_frame when tv15Khz_mode = '1' and flip = '0' else (vcnt(8 downto 0)-1) & not top_frame when tv15Khz_mode = '1' and flip = '1' else 480-vcnt when flip = '0' else vcnt + 1;
 --vflip <= vcnt; -- don't apply mirror flip --drawpoker
 
 sp_buffer_sel <= vflip(1) when tv15Khz_mode = '1' else vflip(0);
+
+hcnt_flip <= hcnt when flip = '0' else "0" & (not hcnt(8 downto 0));
+pal_sel   <= hcnt(2 downto 1) when flip = '0' else not hcnt(2 downto 1);
+hcnt_f0   <= hcnt(0) when flip = '0' else not hcnt(0);
+sp_buf_read_addr <= hcnt(8 downto 1) - X"03" when flip = '0' else not (hcnt(8 downto 1) - X"03");
 
 process (clock_vid)
 begin
@@ -593,30 +602,30 @@ sp_graphx_flip <= sp_graphx_do when sp_hflip(0) = '0' else
 						sp_graphx_do(3 downto 0) & sp_graphx_do(7 downto 4);		
 
 sp_buffer_ram1_di   <= sp_buffer_ram1_do or sp_graphx_flip       when sp_buffer_sel = '1' else "00000000";
-sp_buffer_ram1_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '1' else hcnt(8 downto 1) - X"03";
+sp_buffer_ram1_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '1' else sp_buf_read_addr;
 sp_buffer_ram1_we   <= not sp_hcnt(0) and sp_on_line and pix_ena when sp_buffer_sel = '1' else hcnt(0);
 
 sp_buffer_ram2_di   <= sp_buffer_ram2_do or sp_graphx_flip       when sp_buffer_sel = '0' else "00000000";
-sp_buffer_ram2_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '0' else hcnt(8 downto 1) - X"03";
+sp_buffer_ram2_addr <= sp_hcnt(8 downto 1)                       when sp_buffer_sel = '0' else sp_buf_read_addr;
 sp_buffer_ram2_we   <= not sp_hcnt(0) and sp_on_line and pix_ena when sp_buffer_sel = '0' else hcnt(0);
 
-sp_vid <= sp_buffer_ram1_do_r(7 downto 4) when (sp_buffer_sel = '0') and (hcnt(0) = '1') else
-		    sp_buffer_ram1_do_r(3 downto 0) when (sp_buffer_sel = '0') and (hcnt(0) = '0') else
-		    sp_buffer_ram2_do_r(7 downto 4) when (sp_buffer_sel = '1') and (hcnt(0) = '1') else
-			 sp_buffer_ram2_do_r(3 downto 0);-- when (sp_buffer_sel = '1') and (hcnt(0) = '0');			  
+sp_vid <= sp_buffer_ram1_do_r(7 downto 4) when (sp_buffer_sel = '0') and (hcnt_f0 = '1') else
+          sp_buffer_ram1_do_r(3 downto 0) when (sp_buffer_sel = '0') and (hcnt_f0 = '0') else
+          sp_buffer_ram2_do_r(7 downto 4) when (sp_buffer_sel = '1') and (hcnt_f0 = '1') else
+          sp_buffer_ram2_do_r(3 downto 0);			  
 
 --------------------
 --- char machine ---
 --------------------
-bg_ram_addr <= cpu_addr(9 downto 0) when bg_ram_cpu_access = '1' else vflip(8 downto 4) & hcnt(8 downto 4);
-bg_code_line <=  bg_ram_do & vflip(3 downto 1) & hcnt(3);
+bg_ram_addr <= cpu_addr(9 downto 0) when bg_ram_cpu_access = '1' else vflip(8 downto 4) & hcnt_flip(8 downto 4);
+bg_code_line <=  bg_ram_do & vflip(3 downto 1) & hcnt_flip(3);
 
 process (clock_vid)
 begin
 	if rising_edge(clock_vid) then
 		
 		if hcnt(0) = '1' then
-			case hcnt(2 downto 1) is
+			case pal_sel is
 				when "00"   => bg_palette_addr <= bg_graphx2_do(7 downto 6) & bg_graphx1_do(7 downto 6);
 				when "01"   => bg_palette_addr <= bg_graphx2_do(5 downto 4) & bg_graphx1_do(5 downto 4);
 				when "10"   => bg_palette_addr <= bg_graphx2_do(3 downto 2) & bg_graphx1_do(3 downto 2);

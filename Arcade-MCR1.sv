@@ -204,6 +204,7 @@ localparam CONF_STR = {
 	"A.MCR1;;",
 	"H0OGH,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"H0O2,Orientation,Vert,Horz;",
+	"O6,Flip Screen,Off,On,",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"D2OD,Deinterlacer Hi-Res,Off,On;",
 	"-;",
@@ -480,7 +481,8 @@ mcr1 mcr1
 	.dl_data(ioctl_dout),
 	.dl_nvram_wr(ioctl_wr & (ioctl_index=='d4)), 
 	.dl_din(ioctl_din),
-	.dl_nvram(ioctl_index=='d4)
+	.dl_nvram(ioctl_index=='d4),
+	.flip (status[6])
 );
 
 wire hs, vs, cs;
